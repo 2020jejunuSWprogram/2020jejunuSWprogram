@@ -29,7 +29,7 @@ while True:
     for i in range(32):
         for j in range(32):
             pv_shrink[j,i]=np.mean(pv[i*8:(i+1)*8,j*8:(j+1)*8])
-    f=open('class_swirl.txt','a')
+    f=open('class_left.txt','a')
     pv_shrink=pv_shrink.flatten()
     print(len(pv_shrink))
     for i in pv_shrink:
