@@ -62,7 +62,15 @@ class Network:
 
 
 network = Network()
-model=tf.keras.models.load_model('network.h5')
+# model=tf.keras.models.load_model('network.h5')
+model=network.gen_model()
 train_X, train_Y, test_X, test_Y=network.read_data()
-# model, history=network.fit(model,train_X, train_Y, test_X, test_Y)
-model.summary()
+model, history=network.fit(model,train_X, train_Y, test_X, test_Y)
+# model.summary()
+
+plt.plot(history.history['acc'])
+plt.title('Model accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend(['Train'], loc='upper left')
+plt.show()
