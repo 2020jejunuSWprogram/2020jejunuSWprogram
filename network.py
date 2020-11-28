@@ -1,3 +1,4 @@
+  
 import tensorflow as tf
 import numpy as np
 
@@ -53,4 +54,5 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc']
 model.fit(train_X, train_Y, epochs=10)
 
 model.evaluate(test_X, test_Y)
-    
+
+model.save('network')
