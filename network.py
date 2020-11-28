@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Network:
     def __init__(self):
@@ -31,7 +32,14 @@ class Network:
                         self.data_set.append(list(map(float,temp3))+[7])
             f.close()
         self.data_cnt = len(self.data_set)
-        return np.array(self.data_set)
+        self.data_set = np.array(self.data_set)
+        self.rate=0.8
+        train_X,test_X,train_Y,test_Y=self.data_set[:int(self.rate*self.data_cnt),:-1],self.data_set[int(self.rate*self.data_cnt):,:-1],self.data_set[:int(self.rate*self.data_cnt),-1],self.data_set[int(self.rate*self.data_cnt):,-1]
+        train_X=train_X.reshape((int(self.rate*self.data_cnt),32,32,1))
+        test_X=test_X.reshape((self.data_cnt-int(self.rate*self.data_cnt),32,32,1))
+        train_Y = tf.keras.utils.to_categorical(train_Y, num_classes = 8)
+        test_Y = tf.keras.utils.to_categorical(test_Y, num_classes = 8)
+        return train_X, train_Y, test_X, test_Y
     def gen_model(self):
         model = tf.keras.Sequential()
         model.add(tf.keras.layers.Conv2D(32,(3,3),activation='relu', input_shape=(32,32,1)))
@@ -46,20 +54,15 @@ class Network:
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
         return model
 
-    def fit(self, model, data_set):
-        self.rate=0.8
-        train_X,test_X,train_Y,test_Y=data_set[:int(self.rate*self.data_cnt),:-1],data_set[int(self.rate*self.data_cnt):,:-1],data_set[:int(self.rate*self.data_cnt),-1],data_set[int(self.rate*self.data_cnt):,-1]
-        train_X=train_X.reshape((int(self.rate*self.data_cnt),32,32,1))
-        test_X=test_X.reshape((self.data_cnt-int(self.rate*self.data_cnt),32,32,1))
-        train_Y = tf.keras.utils.to_categorical(train_Y, num_classes = 8)
-        test_Y = tf.keras.utils.to_categorical(test_Y, num_classes = 8)
-        model.fit(train_X, train_Y, epochs=10)
+    def fit(self, model, train_X, train_Y, test_X, test_Y):
+        history = model.fit(train_X, train_Y, epochs=10)
         model.evaluate(test_X, test_Y)
         model.save('network.h5')
-        return model
+        return model, history
 
 
 network = Network()
-model=network.gen_model()
-data_set=network.read_data()
-model=network.fit(model,data_set)
+model=tf.keras.models.load_model('network.h5')
+train_X, train_Y, test_X, test_Y=network.read_data()
+# model, history=network.fit(model,train_X, train_Y, test_X, test_Y)
+model.summary()
