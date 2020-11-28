@@ -6,6 +6,7 @@ class network:
         self.classes = {0:'swirl', 1:'heart', 2:'horizontal', 3:'vertical', 4:'up', 5:'left',6:'down',7:'right'}
         self.data_set = []
         self.data_cnt = 0
+        self.rate = 0.8
     def read_data(self):
         for i in range(6):
             f=open('class_'+self.classes[i]+'.txt','r')
@@ -30,6 +31,24 @@ class network:
                         self.data_set.append(list(map(float,temp3))+[7])
             f.close()
         self.data_cnt = len(self.data_set)
+        self.data_set = np.array(self.data_set)
+        return self.data_set
+    def gen_model(self):
+        model = tf.keras.Sequential()
+        model.add(tf.keras.layers.Conv2D(32,(3,3),activation='relu', input_shape=(32,32,1)))
+        model.add(tf.keras.layers.MaxPooling2D((2,2)))
+        model.add(tf.keras.layers.Conv2D(64,(3,3),activation='relu'))
+        model.add(tf.keras.layers.MaxPooling2D((2,2)))
+        model.add(tf.keras.layers.Conv2D(64,(3,3),activation='relu'))
+        model.add(tf.keras.layers.MaxPooling2D((2,2)))
+        model.add(tf.keras.layers.Flatten())
+        model.add(tf.keras.layers.Dense(64, activation='relu'))
+        model.add(tf.keras.layers.Dense(8, activation='softmax'))
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
+
+        return model
+    def fit(self, dataset, model):
+        pass
 
 
 classes={0:'swirl', 1:'heart', 2:'horizontal', 3:'vertical', 4:'up', 5:'left',6:'down',7:'right'}
@@ -68,8 +87,8 @@ train_Y = tf.keras.utils.to_categorical(train_Y, num_classes = 8)
 test_Y = tf.keras.utils.to_categorical(test_Y, num_classes = 8)
 
 model = tf.keras.Sequential()
-model.add(tf.keras.layers.InputLayer(input_shape=(32,32,1)))
-model.add(tf.keras.layers.Conv2D(32,(3,3),activation='relu'))
+# model.add(tf.keras.layers.InputLayer(input_shape=(32,32,1)))
+model.add(tf.keras.layers.Conv2D(32,(3,3),activation='relu', input_shape=(32,32,1)))
 model.add(tf.keras.layers.MaxPooling2D((2,2)))
 model.add(tf.keras.layers.Conv2D(64,(3,3),activation='relu'))
 model.add(tf.keras.layers.MaxPooling2D((2,2)))
