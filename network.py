@@ -1,6 +1,36 @@
-  
 import tensorflow as tf
 import numpy as np
+
+class network:
+    def __init__(self):
+        self.classes = {0:'swirl', 1:'heart', 2:'horizontal', 3:'vertical', 4:'up', 5:'left',6:'down',7:'right'}
+        self.data_set = []
+        self.data_cnt = 0
+    def read_data(self):
+        for i in range(6):
+            f=open('class_'+self.classes[i]+'.txt','r')
+            lines=f.readlines()
+            for line in lines:
+                temp=line.split(',')
+                if len(temp)==1025:
+                    self.data_set.append(list(map(float,temp[:-1]))+[i])
+                    if i==4:
+                        temp2=np.array(temp[:-1]).reshape((32,32))
+                        temp3=np.zeros((32,32))
+                        for ii in range(32):
+                            temp3[ii,:]=temp2[31-ii,:]
+                        temp3=temp3.flatten().tolist()
+                        self.data_set.append(list(map(float,temp3))+[6])
+                    elif i==5:
+                        temp2=np.array(temp[:-1]).reshape((32,32))
+                        temp3=np.zeros((32,32))
+                        for ii in range(32):
+                            temp3[:,ii]=temp2[:,31-ii]
+                        temp3=temp3.flatten().tolist()
+                        self.data_set.append(list(map(float,temp3))+[7])
+            f.close()
+        self.data_cnt = len(self.data_set)
+
 
 classes={0:'swirl', 1:'heart', 2:'horizontal', 3:'vertical', 4:'up', 5:'left',6:'down',7:'right'}
 data_set=[]
@@ -55,4 +85,4 @@ model.fit(train_X, train_Y, epochs=10)
 
 model.evaluate(test_X, test_Y)
 
-model.save('network')
+model.save('network.h5')
