@@ -21,11 +21,11 @@ class Visual():
     self.grass=pygame.transform.scale(self.grass,(100,100))
     self.road=pygame.image.load('./Image/road.png')
     self.road=pygame.transform.scale(self.road,(100,100))
-    self.good_sprites={'swirl':[],'heart':[],'horizontal':[],'vertical':[]} #((위치 x, 위치 y), 스킬 남은 사용 시간, 스킬 쿨타임, HP)
-    self.good_sprites_num={'swirl':0,'heart':1,'horizontal':2,'vertical':3}
-    self.good_sprites_image=[pygame.transform.scale(pygame.image.load('./Image/'+list(self.good_sprites_num.keys())[i]+'.png'),(100,100)) for i in range(4)]+[pygame.transform.scale(pygame.image.load('./Image/'+list(self.good_sprites_num.keys())[i]+'_2.png'),(100,100)) for i in range(4)]
-    self.bad_sprites={}
-    self.symbol_model=load_model('./201121/network.h5')
+    self.sprites={'swirl':[],'heart':[],'horizontal':[],'vertical':[],'normal':[],'fast':[],'aggressive':[]} #((위치 x, 위치 y), 스킬 쿨타임, HP)
+    self.sprites_image={}
+    for i in self.sprites.keys():
+      self.sprites_image[i]=pygame.transform.scale(pygame.image.load('./Image/'+i+'.png'),(50,50))
+    self.symbol_model=load_model('network.h5')
 
   def board(self):
     tiles=[]
@@ -45,14 +45,11 @@ class Visual():
 
   def show_sprites(self):
     character_rects=[]
-    for characters in self.good_sprites.keys():
-      for character in self.good_sprites[characters]:
-        padding=0
-        if character[1]>0:
-          padding=4
-        character_rects.append(self.good_sprites_image[self.good_sprites_num[characters]+padding].get_rect())
-        character_rects[-1].center=character[0]
-        self.screen.blit(self.good_sprites_image[self.good_sprites_num[characters]], character_rects[-1])
+    for characters in self.sprites.keys():
+      for character in self.sprites[characters]:
+        character_rects.append(self.sprites_image[characters].get_rect())
+        character_rects[-1].center=character['location']
+        self.screen.blit(self.sprites_image[characters], character_rects[-1])
 
     pygame.display.flip()
 
@@ -90,48 +87,14 @@ class Visual():
       for j in range(32):
         pv_shrink[0,j,i,0]=np.mean(pv[i*wanted_size//32:(i+1)*wanted_size//32,j*wanted_size//32:(j+1)*wanted_size//32])
 
-    plt.imshow(pv_shrink[0,:,:,0])
-    plt.show()
     percentage=self.symbol_model.predict(pv_shrink)
     
     symbols='ම ♡ ㅡ ㅣ △ ◁ ▽ ▷'
     symbols=symbols.split()
     mx=-1
-    print(percentage[0])
     for i, per in enumerate(percentage[0]):
       if per>mx:
         mx=per
         mm=i
 
     return symbols[mm]
-
-
-v=Visual()
-radius=5
-v.board()
-flag=False
-while True:
-  for event in pygame.event.get():
-    if event.type==pygame.MOUSEBUTTONDOWN:
-      flag=True
-      
-  while flag:
-    for event in pygame.event.get():
-      if event.type==pygame.MOUSEBUTTONDOWN:
-        flag=True
-      if event.type==pygame.MOUSEBUTTONUP:
-        flag=False
-        
-    x,y=pygame.mouse.get_pos()
-    pygame.draw.circle(v.write_display,(252, 159, 246),[x,y],radius)
-    v.screen.blit(v.write_display,(0,0))
-    pygame.display.flip()
-
-    if not flag:
-      print(v.read())
-      v.write_display.fill((255,255,255))
-      v.screen.fill((255,255,255))
-      v.board()
-      pygame.display.flip()
-      break
-

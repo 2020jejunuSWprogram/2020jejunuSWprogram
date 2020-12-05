@@ -31,14 +31,49 @@ class Network:
                         temp3=temp3.flatten().tolist()
                         self.data_set.append(list(map(float,temp3))+[7])
             f.close()
+        
+        self.data_set=np.array(self.data_set)
         self.data_cnt = len(self.data_set)
-        self.data_set = np.array(self.data_set)
+        X_data_set=self.data_set[:,:-1].reshape(self.data_cnt,32,32,1)
+        Y_data_set=self.data_set[:,-1]
+        Y_data_set=tf.keras.utils.to_categorical(Y_data_set, num_classes = 8)
+        sorted_data_set=np.zeros((self.data_cnt,32,32,1))
+        for data_num in range(self.data_cnt):
+            up=33
+            down=0
+            for i in range(32):
+                flag=False
+                for j in range(32):
+                    if X_data_set[data_num,i,j,0]!=0:
+                        down=max(down,j)
+                        if not flag:
+                            flag=True
+                            up=min(up,j)
+
+            left=33
+            right=0
+            for i in range(32):
+                flag=False
+                for j in range(32):
+                    if X_data_set[data_num,j,i,0]!=0:
+                        right=max(right,j)
+                        if not flag:
+                            flag=True
+                            left=min(left,j)
+            
+            if up==33 or down==0 or left==33 or right==0:
+                continue
+
+            temp=X_data_set[data_num,left:right,up:down,0]
+            temp=np.pad(temp,(((32-right+left)//2,32-(right-left)-(32-right+left)//2),((32-down+up)//2,32-(down-up)-(32-down+up)//2)),'constant',constant_values=0)
+
+            sorted_data_set[data_num,:,:,0]=temp
+        
+        self.data_set = sorted_data_set
         self.rate=0.8
-        train_X,test_X,train_Y,test_Y=self.data_set[:int(self.rate*self.data_cnt),:-1],self.data_set[int(self.rate*self.data_cnt):,:-1],self.data_set[:int(self.rate*self.data_cnt),-1],self.data_set[int(self.rate*self.data_cnt):,-1]
-        train_X=train_X.reshape((int(self.rate*self.data_cnt),32,32,1))
-        test_X=test_X.reshape((self.data_cnt-int(self.rate*self.data_cnt),32,32,1))
-        train_Y = tf.keras.utils.to_categorical(train_Y, num_classes = 8)
-        test_Y = tf.keras.utils.to_categorical(test_Y, num_classes = 8)
+        train_X,test_X=X_data_set[:int(self.rate*self.data_cnt)],X_data_set[int(self.rate*self.data_cnt):]
+        train_Y,test_Y=Y_data_set[:int(self.rate*self.data_cnt)],Y_data_set[int(self.rate*self.data_cnt):]
+
         return train_X, train_Y, test_X, test_Y
     def gen_model(self):
         model = tf.keras.Sequential()
